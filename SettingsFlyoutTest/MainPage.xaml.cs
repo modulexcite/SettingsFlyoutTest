@@ -37,14 +37,9 @@ namespace SettingsFlyoutTest
         /// property is typically used to configure the page.</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            SettingsFlyoutInfo info = new SettingsFlyoutInfo()
-            {
-                SettingsFlyoutType = typeof(SettingsFlyout),
-                SettingsID = "FlyoutTestID",
-                SettingsTitle = "Flyout Test",
-                SettingsWidth = 500
-            };
-            SettingsFlyoutAttachedProperty.SetValue(this, info);
+            SettingsFlyoutInfoCollection collection = new SettingsFlyoutInfoCollection();
+            collection.AddSettingsFlyoutInfo(typeof(SettingsFlyout), "FlyoutTestID", "Flyout Test", 500);
+            SettingsFlyoutAttachedProperty.SetValue(this, collection);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

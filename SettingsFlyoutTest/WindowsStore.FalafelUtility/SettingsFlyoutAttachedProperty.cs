@@ -22,7 +22,37 @@ namespace WindowsStore.FalafelUtility
         public Type SettingsFlyoutType { get; set; }
     }
 
-    public class SettingsFlyoutAttachedProperty : WindowsStore.FalafelUtility.AttachedPropertyAssociatedObject<SettingsFlyoutAttachedProperty, Page, SettingsFlyoutInfo>
+    public class SettingsFlyoutInfoCollection
+    {
+        public SettingsFlyoutInfoCollection()
+        {
+            Infos = new Dictionary<string, SettingsFlyoutInfo>();
+        }
+
+        public event EventHandler<bool> PopupChanged;
+        public Dictionary<string, SettingsFlyoutInfo> Infos { get; set; }
+
+        internal void RaisePopupChanged(bool value)
+        {
+            if (this.PopupChanged != null)
+            {
+                this.PopupChanged(this, value);
+            }
+        }
+
+        public void AddSettingsFlyoutInfo(Type type, string settingsID, string title, double width)
+        {
+            Infos.Add(settingsID, new SettingsFlyoutInfo()
+            {
+                SettingsFlyoutType = type,
+                SettingsID = settingsID,
+                SettingsTitle = title,
+                SettingsWidth = width,
+            });
+        }
+    }
+
+    public class SettingsFlyoutAttachedProperty : WindowsStore.FalafelUtility.AttachedPropertyAssociatedObject<SettingsFlyoutAttachedProperty, Page, SettingsFlyoutInfoCollection>
     {
         // Used to determine the correct height to ensure our custom UI fills the screen.
         private Rect windowBounds;
@@ -64,12 +94,15 @@ namespace WindowsStore.FalafelUtility
         /// <param name="command"></param>
         void onSettingsCommand(IUICommand command)
         {
+            SettingsCommand scmd = command as SettingsCommand;
+            var item = this.Value.Infos[scmd.Id.ToString()];
+
             // Create a Popup window which will contain our flyout.
             settingsPopup = new Popup();
             settingsPopup.Closed += OnPopupClosed;
             Window.Current.Activated += OnWindowActivated;
             settingsPopup.IsLightDismissEnabled = true;
-            settingsPopup.Width = this.Value.SettingsWidth;
+            settingsPopup.Width = item.SettingsWidth;
             settingsPopup.Height = windowBounds.Height;
 
             // Add the proper animation for the panel.
@@ -82,17 +115,18 @@ namespace WindowsStore.FalafelUtility
             });
 
             // Create a SettingsFlyout the same dimenssions as the Popup.
-            LayoutAwarePage mypane = Activator.CreateInstance(this.Value.SettingsFlyoutType) as LayoutAwarePage;
-            mypane.Width = this.Value.SettingsWidth;
+            LayoutAwarePage mypane = Activator.CreateInstance(item.SettingsFlyoutType) as LayoutAwarePage;
+            mypane.Width = item.SettingsWidth;
             mypane.Height = windowBounds.Height;
 
             // Place the SettingsFlyout inside our Popup window.
             settingsPopup.Child = mypane;
 
             // Let's define the location of our Popup.
-            settingsPopup.SetValue(Canvas.LeftProperty, SettingsPane.Edge == SettingsEdgeLocation.Right ? (windowBounds.Width - this.Value.SettingsWidth) : 0);
+            settingsPopup.SetValue(Canvas.LeftProperty, SettingsPane.Edge == SettingsEdgeLocation.Right ? (windowBounds.Width - item.SettingsWidth) : 0);
             settingsPopup.SetValue(Canvas.TopProperty, 0);
             settingsPopup.IsOpen = true;
+            this.Value.RaisePopupChanged(true);
         }
 
         /// <summary>
@@ -104,10 +138,13 @@ namespace WindowsStore.FalafelUtility
         /// <param name="eventArgs">Event data describing the conditions that led to the event.</param>
         void onCommandsRequested(SettingsPane settingsPane, SettingsPaneCommandsRequestedEventArgs eventArgs)
         {
-            UICommandInvokedHandler handler = new UICommandInvokedHandler(onSettingsCommand);
+            foreach (var item in this.Value.Infos.Values)
+            {
+                UICommandInvokedHandler handler = new UICommandInvokedHandler(onSettingsCommand);
 
-            SettingsCommand generalCommand = new SettingsCommand(this.Value.SettingsID, this.Value.SettingsTitle, handler);
-            eventArgs.Request.ApplicationCommands.Add(generalCommand);
+                SettingsCommand generalCommand = new SettingsCommand(item.SettingsID, item.SettingsTitle, handler);
+                eventArgs.Request.ApplicationCommands.Add(generalCommand);
+            }
         }
 
         /// <summary>
@@ -132,7 +169,7 @@ namespace WindowsStore.FalafelUtility
         void OnPopupClosed(object sender, object e)
         {
             Window.Current.Activated -= OnWindowActivated;
+            this.Value.RaisePopupChanged(false);
         }
-
     }
 }
