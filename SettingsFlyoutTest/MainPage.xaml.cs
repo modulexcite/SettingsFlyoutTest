@@ -38,8 +38,21 @@ namespace SettingsFlyoutTest
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             SettingsFlyoutInfoCollection collection = new SettingsFlyoutInfoCollection();
+            collection.PopupChanged += collection_PopupChanged;
             collection.AddSettingsFlyoutInfo(typeof(SettingsFlyout), "FlyoutTestID", "Flyout Test", 500);
             SettingsFlyoutAttachedProperty.SetValue(this, collection);
+        }
+
+        void collection_PopupChanged(object sender, bool e)
+        {
+            if (e)
+            {
+                ad1.Suspend();
+            }
+            else
+            {
+                ad1.Resume();
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

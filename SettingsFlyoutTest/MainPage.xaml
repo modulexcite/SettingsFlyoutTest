@@ -5,10 +5,14 @@
     xmlns:local="using:SettingsFlyoutTest"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:UI="using:Microsoft.Advertising.WinRT.UI"
     mc:Ignorable="d">
 
     <Grid Background="{StaticResource ApplicationPageBackgroundThemeBrush}">
         <TextBlock HorizontalAlignment="Left" Margin="100" TextWrapping="Wrap" Text="Open Charms -> Settings -> Flyout Test" VerticalAlignment="Top" FontSize="50"/>
-
+        <UI:AdControl x:Name="ad1" ApplicationId="d25517cb-12d4-4699-8bdc-52040c712cab" AdUnitId="10043107" HorizontalAlignment="Right" Height="250" Margin="0,160,300,0" VerticalAlignment="Top" Width="250"
+                      IsAutoRefreshEnabled="True"/>
+        <UI:AdControl x:Name="ad2" ApplicationId="d25517cb-12d4-4699-8bdc-52040c712cab" AdUnitId="10043107" HorizontalAlignment="Right" Height="250" Margin="0,440,300,0" VerticalAlignment="Top" Width="250"
+                      IsAutoRefreshEnabled="True"/>
     </Grid>
 </Page>
